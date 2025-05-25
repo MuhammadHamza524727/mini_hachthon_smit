@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Login from './pages/login'
 import Signup from './Pages/Signup'
 import UserDashboard from './Pages/UserDashboard'
 import AdminDashboard from './Pages/AdminDashboard'
 import UploadForm from './Pages/UplaodForm'
 import ProtectedRoute from './Pages/ProtectedRoutes'
+import Login from './Pages/Login'
 
 function App() {
   return (

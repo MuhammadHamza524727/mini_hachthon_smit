@@ -1,42 +1,4 @@
-// import { useState } from 'react'
-// import { supabase } from '../Supabase/supabase'
-// import { useNavigate } from 'react-router-dom'
-// import { Link } from 'react-router-dom'
 
-// const ADMIN_EMAIL = "admin@bookhub.com"
-
-// export default function Login() {
-//   const [email, setEmail] = useState("")
-//   const [password, setPassword] = useState("")
-//   const [error, setError] = useState(null)
-//   const navigate = useNavigate()
-
-//   const handleLogin = async (e) => {
-//     e.preventDefault()
-//     const {  error: loginError } = await supabase.auth.signInWithPassword({ email, password })
-
-//     if (loginError) setError(loginError.message)
-//     else {
-//       if (email === ADMIN_EMAIL) navigate("/admin")
-//       else navigate("/user")
-//     }
-//   }
-
-//   return (
-//     <>
-//     <div className="p-8 max-w-md mx-auto">
-//       <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
-//       <form onSubmit={handleLogin}>
-//         <input className="border p-2 w-full mb-4" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-//         <input type="password" className="border p-2 w-full mb-4" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
-//         {error && <p className="text-red-600 mb-4">{error}</p>}
-//         <button className="bg-blue-600 text-white px-4 py-2" type="submit">Login</button>
-//       </form>
-//     </div>
-//     <Link to="/signup" className="text-blue-600 underline">Sign Up</Link>
-//     </>
-//   )
-// }
 
 import { useState } from 'react'
 import { supabase } from '../Supabase/supabase'
