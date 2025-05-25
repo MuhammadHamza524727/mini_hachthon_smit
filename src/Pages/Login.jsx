@@ -1,5 +1,3 @@
-
-
 import { useState } from 'react'
 import { supabase } from '../Supabase/supabase'
 import { useNavigate, Link } from 'react-router-dom'
