@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../Supabase/supabase'
 import { useNavigate } from 'react-router-dom'
+import { Toaster, toast } from 'react-hot-toast'
 
 export default function AdminDashboard() {
   const [requests, setRequests] = useState([])
@@ -14,6 +15,7 @@ export default function AdminDashboard() {
     setLoading(false)
   }
 
+  
   useEffect(() => {
     const checkAdmin = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -26,67 +28,34 @@ export default function AdminDashboard() {
     fetchRequests()
   }, [])
 
-const handleApprove = async (request) => {
-  // Step 1: Insert into books WITHOUT submitted_by
-  const { error: insertError } = await supabase.from('books').insert([{
-    title: request.title,
-    author: request.author,
-    pdf_url: request.pdf_url,
-    uploaded_at: new Date().toISOString(), // set timestamp
-  }])
+  const handleApprove = async (request) => {
+    const { error: insertError } = await supabase.from('books').insert([{
+      title: request.title,
+      author: request.author,
+      pdf_url: request.pdf_url,
+      uploaded_at: new Date().toISOString(),
+    }])
 
-  if (insertError) {
-    console.error("Insert error:", insertError)
-    alert("Error approving request")
-    return
+    if (insertError) {
+      console.error("Insert error:", insertError)
+      toast.error("Error approving request")
+      return
+    }
+
+    const { error: deleteError } = await supabase
+      .from('book_requests')
+      .delete()
+      .eq('id', request.id)
+
+    if (deleteError) {
+      console.error("Delete error:", deleteError)
+      toast.error("Approved but failed to remove from requests.")
+      return
+    }
+
+    toast.success("Event approved!")
+    fetchRequests()
   }
-
-  // Step 2: Delete from book_requests
-  const { error: deleteError } = await supabase
-    .from('book_requests')
-    .delete()
-    .eq('id', request.id)
-
-  if (deleteError) {
-    console.error("Delete error:", deleteError)
-    alert("Approved but failed to remove from requests.")
-    return
-  }
-
-  alert("Book approved!")
-  fetchRequests()
-}
-
-
-//   const handleApprove = async (request) => {
-//     // 1. Insert into 'books'
-//     const { error: insertError } = await supabase.from('books').insert([{
-//       title: request.title,
-//       author: request.author,
-//       pdf_url: request.pdf_url,
-//       submitted_by: request.submitted_by,
-//     }])
-
-//     if (insertError) {
-//       alert("Error approving request")
-//       return
-//     }
-// console.log('error', insertError);
-
-//     // 2. Delete from 'book_requests'
-//     const { error: deleteError } = await supabase
-//       .from('book_requests')
-//       .delete()
-//       .eq('id', request.id)
-
-//     if (deleteError) {
-//       alert("Approved but failed to remove from requests.")
-//       return
-//     }
-
-//     alert("Book approved!")
-//     fetchRequests()
-//   }
 
   const handleReject = async (id) => {
     const { error } = await supabase
@@ -95,9 +64,9 @@ const handleApprove = async (request) => {
       .eq('id', id)
 
     if (error) {
-      alert("Error rejecting request")
+      toast.error("Error rejecting request")
     } else {
-      alert("Book rejected.")
+      toast.success("Event rejected.")
       fetchRequests()
     }
   }
@@ -108,53 +77,60 @@ const handleApprove = async (request) => {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Admin Panel - Requests</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 text-white px-4 py-2 rounded"
-        >
-          Logout
-        </button>
-      </div>
-
-      {loading ? (
-        <p>Loading requests...</p>
-      ) : requests.length === 0 ? (
-        <p>No pending requests.</p>
-      ) : (
-        <div className="space-y-4">
-          {requests.map((req) => (
-            <div key={req.id} className="border p-4 rounded shadow">
-              <h2 className="text-lg font-semibold">{req.title}</h2>
-              <p className="text-sm text-gray-600">by {req.author}</p>
-              <a
-                href={req.pdf_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
-              >
-                View PDF
-              </a>
-              <div className="mt-4 space-x-2">
-                <button
-                  onClick={() => handleApprove(req)}
-                  className="bg-green-600 text-white px-4 py-1 rounded"
-                >
-                  Approve
-                </button>
-                <button
-                  onClick={() => handleReject(req.id)}
-                  className="bg-red-500 text-white px-4 py-1 rounded"
-                >
-                  Reject
-                </button>
-              </div>
-            </div>
-          ))}
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start py-10 px-4">
+      <Toaster position="top-right" reverseOrder={false} />
+      <div className="w-full max-w-5xl bg-gray-800 p-6 shadow-lg rounded-lg">
+        <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-3">
+          <h1 className="text-3xl font-extrabold">Admin Panel - Event Requests</h1>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 transition text-white font-semibold px-5 py-2 rounded-md shadow-md"
+          >
+            Logout
+          </button>
         </div>
-      )}
+
+        {loading ? (
+          <p className="text-center text-gray-400 text-lg">Loading requests...</p>
+        ) : requests.length === 0 ? (
+          <p className="text-center text-gray-400 text-lg">No pending requests.</p>
+        ) : (
+          <div className="space-y-6">
+            {requests.map((req) => (
+              <div
+                key={req.id}
+                className="border border-gray-500 rounded-lg shadow-sm p-5 hover:shadow-md transition"
+              >
+                <h2 className="text-xl font-semibold mb-1">Organisor Name: {req.title}</h2>
+                <p className="text-lg mb-2">Event: <span className="italic">{req.author}</span></p>
+                <a
+                  href={req.pdf_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mb-4 text-blue-400 hover:text-blue-300 underline"
+                >
+                  View image PDF
+                </a>
+
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => handleApprove(req)}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-md font-semibold transition-shadow shadow"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleReject(req.id)}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-md font-semibold transition-shadow shadow"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

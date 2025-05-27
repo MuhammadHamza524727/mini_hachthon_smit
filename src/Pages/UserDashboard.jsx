@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../Supabase/supabase";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function UserDashboard() {
   const [books, setBooks] = useState([]);
@@ -10,7 +11,6 @@ export default function UserDashboard() {
   const [author, setAuthor] = useState("");
   const navigate = useNavigate();
 
-  // File Upload
   const uploadFile = async (file) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
@@ -20,6 +20,7 @@ export default function UserDashboard() {
       .upload(fileName, file);
 
     if (error) {
+      toast.error("Upload failed!");
       console.error("Upload failed:", error);
       return null;
     }
@@ -31,7 +32,6 @@ export default function UserDashboard() {
     return publicUrl.publicUrl;
   };
 
-  // Fetch Approved Books
   const fetchBooks = async () => {
     const { data, error } = await supabase.from("books").select("*");
     if (error) console.error(error);
@@ -39,7 +39,6 @@ export default function UserDashboard() {
     setLoading(false);
   };
 
-  // Auth Check
   useEffect(() => {
     const checkSession = async () => {
       const {
@@ -52,17 +51,15 @@ export default function UserDashboard() {
     fetchBooks();
   }, []);
 
-  // Logout
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
 
-  // Submit Upload Request
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file || !title) {
-      alert("Title and file required");
+      toast.error("Title and file required");
       return;
     }
 
@@ -83,8 +80,9 @@ export default function UserDashboard() {
 
     if (error) {
       console.error("Insert failed:", error);
+      toast.error("Failed to submit request.");
     } else {
-      alert("User Event request submitted for approval!");
+      toast.success("Event request submitted for approval!");
       setFile(null);
       setTitle("");
       setAuthor("");
@@ -94,7 +92,6 @@ export default function UserDashboard() {
   return (
     <div className="min-h-screen bg-gray-900 text-white px-6 py-8">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">User Dashboard</h1>
           <button
@@ -105,7 +102,6 @@ export default function UserDashboard() {
           </button>
         </div>
 
-        {/* Upload Form */}
         <form
           onSubmit={handleSubmit}
           className="bg-gray-800 p-6 rounded-lg shadow-lg mb-10"
@@ -147,31 +143,14 @@ export default function UserDashboard() {
           </button>
         </form>
 
-        {/* Approved Books */}
-        <h2 className="text-2xl font-semibold mb-4">Approved Events</h2>
-        {loading ? (
-          <p className="text-gray-300">Loading approved requests...</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {books.map((book) => (
-              <div
-                key={book.id}
-                className="bg-gray-800 p-4 rounded-lg shadow hover:shadow-xl transition duration-200"
-              >
-                <h3 className="text-lg font-bold">{book.title}</h3>
-                <p className="text-sm text-gray-400">Event: {book.author || "N/A"}</p>
-                <a
-                  href={book.pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block mt-3 text-blue-400 hover:text-blue-300 underline text-sm"
-                >
-                  View image pdf
-                </a>
-              </div>
-            ))}
-          </div>
-        )}
+        <button
+          onClick={() => navigate("approved-events")}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mb-6"
+        >
+          Check Approved Events
+        </button>
+
+        <Outlet />
       </div>
     </div>
   );

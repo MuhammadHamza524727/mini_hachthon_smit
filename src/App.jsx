@@ -5,6 +5,7 @@ import AdminDashboard from './Pages/AdminDashboard'
 import UploadForm from './Pages/UplaodForm'
 import ProtectedRoute from './Pages/ProtectedRoutes'
 import Login from './Pages/Login'
+import ApprovedEvents from './Pages/ApprovedEvents'
 
 function App() {
   return (
@@ -14,7 +15,6 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* Protected User Routes */}
         <Route
           path="/user"
           element={
@@ -22,7 +22,9 @@ function App() {
               <UserDashboard />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route path="approved-events" element={<ApprovedEvents />} />
+        </Route>
 
         <Route
           path="/upload"

@@ -1,23 +1,27 @@
 import { useState } from 'react'
 import { supabase } from '../Supabase/supabase'
 import { useNavigate, Link } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const ADMIN_EMAIL = "admin@bookhub.com"
 
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState(null)
   const navigate = useNavigate()
 
   const handleLogin = async (e) => {
     e.preventDefault()
     const { error: loginError } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (loginError) setError(loginError.message)
-    else {
-      if (email === ADMIN_EMAIL) navigate("/admin")
-      else navigate("/user")
+    if (loginError) {
+      toast.error(loginError.message)
+    } else {
+      toast.success("Login successful!") 
+      setTimeout(() => {
+        if (email === ADMIN_EMAIL) navigate("/admin")
+        else navigate("/user")
+      }, 1000)
     }
   }
 
@@ -39,7 +43,6 @@ export default function Login() {
             value={password}
             onChange={e => setPassword(e.target.value)}
           />
-          {error && <p className="text-red-500 mb-4">{error}</p>}
           <button
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded"
             type="submit"
